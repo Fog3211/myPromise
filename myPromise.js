@@ -12,7 +12,7 @@ function myPromise(executor) {
 			_this.value = value
 			_this.status = 'resolved'
 			_this.resCallbackArr.forEach(fn => {
-				fn()
+				fn(value)
 			})
 		}
 	}
@@ -22,7 +22,7 @@ function myPromise(executor) {
 			_this.reason = reason
 			_this.status = 'rejected'
 			_this.rejCallbackArr.forEach(fn => {
-				fn()
+				fn(reason)
 			})
 		}
 	}
@@ -93,26 +93,49 @@ myPromise.prototype.catch = function (fn) {
 
 let p = new myPromise(function (resolve, reject) {
 	console.log('start')
+
 	let randomNumber = Math.random(0, 1) * 10
 	if (randomNumber > 5) {
 		setTimeout(() => {
-			resolve('data1')
+			resolve('res-init1')
 		})
 	} else {
 		setTimeout(() => {
-			reject('data2')
+			reject('rej-init1')
 		})
 	}
 })
+
 p.then(
-	(v) => {
-		console.log('success： ' + v)
-	},
-	(v) => {
-		console.log('error： ' + v)
-	}
-).then(() => {
-	console.log('end')
-}).catch(() => {
-	console.log('catch')
-})
+		(v) => {
+			console.log('success1： ' + v)
+			return 'res-then1'
+		},
+		(v) => {
+			console.log('error1： ' + v)
+			return 'rej-then1'
+		}
+	)
+	.then(
+		(v) => {
+			// 模拟resolve里面调用reject的情况
+			let randomNumber = Math.random(0, 1) * 10
+			if (randomNumber > 5) {
+				throw new Error('这里抛出一个异常e')
+			} else {
+				console.log('success2： ' + v)
+				return 'res-then2'
+			}
+		},
+		(v) => {
+			console.log('error2： ' + v)
+			return 'rej-then2'
+		}
+	)
+	.then(() => {
+		console.log('end')
+		return 'end'
+	}).catch(() => {
+		console.log('catch')
+		return 'catch'
+	})
